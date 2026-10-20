@@ -11,6 +11,9 @@ suitable for production.
 ./run.sh down
 ```
 
+If the image builds fail to resolve package mirrors (Docker without DNS for
+builds), run with `LDAPM_BUILD_NETWORK=host ./run.sh up`.
+
 ## Containers
 
 | Service | Image base | Ports on 127.0.0.1 |
