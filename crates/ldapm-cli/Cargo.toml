@@ -1,0 +1,31 @@
+[package]
+name = "ldapm"
+description = "Safe, scriptable LDAP directory browser with pinned TLS and SSH tunnels"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+readme = "../../README.md"
+keywords = ["ldap", "openldap", "directory", "cli", "ppolicy"]
+categories = ["command-line-utilities"]
+
+[[bin]]
+name = "ldapm"
+path = "src/main.rs"
+
+[dependencies]
+ldapm-core.workspace = true
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+zeroize.workspace = true
+clap = { version = "4.5", features = ["derive", "env", "wrap_help"] }
+rpassword = "7"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+
+[dev-dependencies]
+assert_cmd = "2"
+tempfile = "3"

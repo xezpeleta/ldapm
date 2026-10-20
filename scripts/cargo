@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Run cargo inside a Rust container. Use this when the host has no C
+# toolchain (ring needs `cc`). With build-essential installed on the host,
+# plain `cargo` works the same way.
+set -euo pipefail
+repo="$(cd "$(dirname "$0")/.." && pwd)"
+image="${LDAPM_RUST_IMAGE:-ldapm-dev}"
+if [ "$image" = ldapm-dev ] && ! docker image inspect ldapm-dev >/dev/null 2>&1; then
+  docker build -q --network host -t ldapm-dev -f "$repo/scripts/Dockerfile.dev" "$repo/scripts" >&2
+fi
+cache="${LDAPM_CARGO_HOME:-$HOME/.cache/ldapm/cargo}"
+mkdir -p "$cache"
+tty=(); [ -t 0 ] && tty=(-it)
+exec docker run --rm "${tty[@]}" \
+  -u "$(id -u):$(id -g)" \
+  -e CARGO_HOME=/cargo -e HOME=/tmp -e LDAPM_TESTDIR \
+  -v "$cache:/cargo" -v "$repo:/work" -w /work \
+  --network host \
+  "$image" cargo "$@"

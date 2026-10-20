@@ -1,0 +1,52 @@
+# Push a tag like v0.1.0 to build static Linux binaries and publish a release.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - { target: x86_64-unknown-linux-musl, os: ubuntu-latest }
+          - { target: aarch64-unknown-linux-musl, os: ubuntu-24.04-arm }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends musl-tools
+      - run: cargo build --release --locked --target ${{ matrix.target }}
+      - name: Package
+        run: |
+          name=ldapm-${{ matrix.target }}
+          bin=target/${{ matrix.target }}/release/ldapm
+          "$bin" --version
+          mkdir dist
+          cp "$bin" README.md LICENSE dist/
+          tar czf "$name.tar.gz" -C dist ldapm README.md LICENSE
+          sha256sum "$name.tar.gz" > "$name.tar.gz.sha256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ldapm-${{ matrix.target }}
+          path: ldapm-${{ matrix.target }}.tar.gz*
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: assets
+          merge-multiple: true
+      - run: gh release create "$GITHUB_REF_NAME" assets/* --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}

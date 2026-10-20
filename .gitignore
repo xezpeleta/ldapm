@@ -1,0 +1,5 @@
+/target
+/testdir/certs/
+/testdir/.config/
+# Private planning notes, not published.
+/notes/

@@ -1,0 +1,16 @@
+# Disposable directory for ldapm development. See testdir/README.md.
+name: ldapm-test
+services:
+  slapd:
+    build: { context: ./slapd, network: host }
+    ports: ["127.0.0.1:6360:636", "127.0.0.1:3890:389"]
+    volumes: ["./certs:/certs:ro"]
+    environment: { SLAPD_DEBUG: "${SLAPD_DEBUG:-0}" }
+    networks: { lan: { aliases: [ldap.test] } }
+  bastion:
+    build: { context: ./bastion, network: host }
+    ports: ["127.0.0.1:2222:22"]
+    volumes: ["./certs/bastion_ed25519.pub:/keys/bastion_ed25519.pub:ro"]
+    networks: [lan]
+networks:
+  lan: {}
